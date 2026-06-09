@@ -1,6 +1,7 @@
 """Core tests for cli-anything-web-yu-pri."""
 
 import json
+from unittest.mock import patch
 
 from click.testing import CliRunner
 import pytest
@@ -115,6 +116,16 @@ def test_cli_plan_json(tmp_path):
     assert data["computed_total"] == 100
 
 
+def test_cli_plan_missing_file_json(tmp_path):
+    missing = tmp_path / "missing.json"
+    result = CliRunner().invoke(cli, ["--json", "plan", str(missing)])
+    assert result.exit_code == 1
+    assert "Usage:" not in result.output
+    data = json.loads(result.output)
+    assert data["type"] == "FileNotFoundError"
+    assert "items file not found" in data["error"]
+
+
 def test_cli_contents_fill_dry_run_json(tmp_path):
     path = tmp_path / "items.json"
     path.write_text(json.dumps([{"description": "A", "value": 100}]), encoding="utf-8")
@@ -123,3 +134,25 @@ def test_cli_contents_fill_dry_run_json(tmp_path):
     data = json.loads(result.output)
     assert data["dry_run"] is True
     assert data["plan"]["declared_total"] == 100
+
+
+def test_cli_contents_fill_missing_file_json(tmp_path):
+    missing = tmp_path / "missing.json"
+    result = CliRunner().invoke(cli, ["--json", "contents", "fill", str(missing), "--dry-run"])
+    assert result.exit_code == 1
+    assert "Usage:" not in result.output
+    data = json.loads(result.output)
+    assert data["type"] == "FileNotFoundError"
+    assert "items file not found" in data["error"]
+
+
+def test_cli_open_login_json_defaults_to_no_wait():
+    fake_info = {"url": "https://mgr.post.japanpost.jp/C30P01Action.do", "title": "Web Yu-pri"}
+    with patch("cli_anything.web_yu_pri.web_yu_pri_cli.open_login", return_value=fake_info) as open_mock, \
+         patch("cli_anything.web_yu_pri.web_yu_pri_cli._interactive_session") as interactive_mock:
+        result = CliRunner().invoke(cli, ["--json", "open-login"])
+
+    assert result.exit_code == 0
+    assert json.loads(result.output) == fake_info
+    open_mock.assert_called_once()
+    interactive_mock.assert_not_called()

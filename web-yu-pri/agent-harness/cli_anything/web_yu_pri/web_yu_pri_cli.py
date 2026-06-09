@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import shlex
 from contextlib import contextmanager
+from pathlib import Path
 from typing import Any
 
 import click
@@ -79,7 +80,10 @@ def _load_plan(
     total_value: int | None,
     value_mode: str,
 ) -> tuple[list[Any], dict[str, Any]]:
-    items = load_items(items_file, default_country=default_country)
+    path = Path(items_file).expanduser()
+    if not path.is_file():
+        raise FileNotFoundError(f"items file not found: {items_file}")
+    items = load_items(path, default_country=default_country)
     plan = build_contents_plan(items, total_value=total_value, value_mode=value_mode)
     return items, plan
 
@@ -126,7 +130,7 @@ def selectors_cmd() -> None:
 
 
 @cli.command("plan")
-@click.argument("items_file", type=click.Path(exists=True, dir_okay=False, path_type=str))
+@click.argument("items_file", type=str)
 @click.option("--country-default", default=None, help="Default ISO country code for rows without one.")
 @click.option("--total-value", type=int, default=None, help="Override the declared total value in yen.")
 @click.option(
@@ -152,15 +156,15 @@ def plan_cmd(items_file: str, country_default: str | None, total_value: int | No
 @click.option("--browser-channel", default=None, help="Playwright channel, for example msedge or chrome.")
 @click.option(
     "--wait/--no-wait",
-    default=True,
-    show_default=True,
-    help="Keep the browser open until Enter is pressed.",
+    default=None,
+    help="Keep the browser open until Enter is pressed. Defaults to on for human output and off for --json.",
 )
-def open_login_cmd(url: str, headless: bool, browser_channel: str | None, wait: bool) -> None:
+def open_login_cmd(url: str, headless: bool, browser_channel: str | None, wait: bool | None) -> None:
     """Open the Web Yu-pri login/start page in the persistent profile."""
 
     try:
-        if wait:
+        should_wait = (not _json_output) if wait is None else wait
+        if should_wait:
             with _interactive_session(url, headless=headless, browser_channel=browser_channel) as info:
                 emit(info, "Opened Web Yu-pri login page.")
                 if not _json_output:
@@ -234,7 +238,7 @@ def contents() -> None:
 
 
 @contents.command("fill")
-@click.argument("items_file", type=click.Path(exists=True, dir_okay=False, path_type=str))
+@click.argument("items_file", type=str)
 @click.option("--url", default=CONTENTS_URL, show_default=True, help="Contents form URL.")
 @click.option("--country-default", default=None, help="Default ISO country code for rows without one.")
 @click.option("--total-value", type=int, default=None, help="Override the declared total value in yen.")

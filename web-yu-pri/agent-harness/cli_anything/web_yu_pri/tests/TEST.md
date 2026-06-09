@@ -2,7 +2,7 @@
 
 ## Test Inventory Plan
 
-- `test_core.py`: 12 unit/CLI smoke tests planned.
+- `test_core.py`: 15 unit/CLI smoke tests planned.
 - `test_full_e2e.py`: 2 E2E tests planned.
 
 ## Unit Test Plan
@@ -57,7 +57,7 @@ python -m pytest cli_anything/web_yu_pri/tests -v
 Result:
 
 ```text
-collected 14 items
+collected 17 items
 
 cli_anything/web_yu_pri/tests/test_core.py::test_parse_item_mapping_aliases PASSED
 cli_anything/web_yu_pri/tests/test_core.py::test_parse_item_rejects_bad_country PASSED
@@ -70,11 +70,14 @@ cli_anything/web_yu_pri/tests/test_core.py::test_selector_report_contains_conten
 cli_anything/web_yu_pri/tests/test_core.py::test_build_dry_run_has_safety_metadata PASSED
 cli_anything/web_yu_pri/tests/test_core.py::test_cli_help PASSED
 cli_anything/web_yu_pri/tests/test_core.py::test_cli_plan_json PASSED
+cli_anything/web_yu_pri/tests/test_core.py::test_cli_plan_missing_file_json PASSED
 cli_anything/web_yu_pri/tests/test_core.py::test_cli_contents_fill_dry_run_json PASSED
+cli_anything/web_yu_pri/tests/test_core.py::test_cli_contents_fill_missing_file_json PASSED
+cli_anything/web_yu_pri/tests/test_core.py::test_cli_open_login_json_defaults_to_no_wait PASSED
 cli_anything/web_yu_pri/tests/test_full_e2e.py::test_dry_run_cli_workflow PASSED
 cli_anything/web_yu_pri/tests/test_full_e2e.py::test_live_status_against_contents_page SKIPPED
 
-13 passed, 1 skipped
+16 passed, 1 skipped
 ```
 
 Additional checks:
